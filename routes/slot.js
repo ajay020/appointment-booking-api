@@ -2,13 +2,20 @@ import { Router } from 'express';
 import Slot from '../models/Slot.js';
 import auth from '../middlewares/authMiddleware.js';
 import isAdmin from '../middlewares/roleMiddleware.js';
+import validate from '../validators/validate.js';
+import { createSlotValidationRules } from '../validators/slotValidators.js';
 
 const router = Router();
 
 // POST /api/slots - Create slot (admin only)
-router.post('/', auth, isAdmin, async (req, res) => {
+router.post('/', auth, isAdmin, createSlotValidationRules(), validate, async (req, res) => {
     const { date, time } = req.body;
     try {
+        const existingSlot = await Slot.findOne({ date, time });
+        if (existingSlot) {
+            return res.status(400).json({ msg: 'A slot for this date and time already exists' });
+        }
+        
         const slot = new Slot({ date, time });
         await slot.save();
         res.status(201).json(slot);
@@ -50,6 +57,7 @@ router.get('/', auth, async (req, res) => {
 // PUT /api/slots/:id - Update slot status (admin only)
 router.put('/:id', auth, isAdmin, async (req, res) => {
     const { status } = req.body;
+
     if (!status || !['available', 'booked', 'cancelled', 'completed'].includes(status)) {
         return res.status(400).json({ msg: 'Invalid status' });
     }

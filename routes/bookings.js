@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import Slot from '../models/Slot.js';
 import auth from '../middlewares/authMiddleware.js';
+import { bookingIdValidationRules } from '../validators/bookingValidators.js';
+import validate from '../validators/validate.js';
 
 const router = Router();
 
@@ -15,7 +17,7 @@ router.get('/available', auth, async (req, res) => {
 });
 
 // POST /api/bookings/:id - Book a slot by ID
-router.post('/:id', auth, async (req, res) => {
+router.post('/:id', auth, bookingIdValidationRules(), validate, async (req, res) => {
     try {
         const slot = await Slot.findById(req.params.id);
         if (!slot) return res.status(404).json({ msg: 'Slot not found' });
@@ -36,7 +38,7 @@ router.post('/:id', auth, async (req, res) => {
 });
 
 // PATCH /api/bookings/:id - Cancel a booking
-router.patch('/:id', auth, async (req, res) => {
+router.patch('/:id', auth, bookingIdValidationRules(), validate, async (req, res) => {
     try {
         const slot = await Slot.findById(req.params.id);
         if (!slot) return res.status(404).json({ msg: 'Slot not found' });
@@ -58,7 +60,6 @@ router.patch('/:id', auth, async (req, res) => {
 
 
 // GET /api/bookings/my - View logged-in user's bookings
-// GET /api/bookings/my
 router.get('/my', auth, async (req, res) => {
     const { page = 1, limit = 10 } = req.query;
 
@@ -85,7 +86,5 @@ router.get('/my', auth, async (req, res) => {
         res.status(500).json({ msg: 'Server error' });
     }
 });
-
-
 
 export default router;

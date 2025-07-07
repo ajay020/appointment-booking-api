@@ -3,6 +3,8 @@ import auth from '../middlewares/authMiddleware.js';
 import isAdmin from '../middlewares/roleMiddleware.js';
 import User from '../models/User.js';
 import Slot from '../models/Slot.js';
+import { adminBookingFiltersValidation } from '../validators/adminValidators.js';
+import validate from '../validators/validate.js';
 
 const router = Router();
 
@@ -26,36 +28,50 @@ router.post("/promote/:id", auth, async (req, res) => {
 })
 
 // GET /api/admin/bookings - all bookings (optional status filter)
-router.get('/bookings', auth, isAdmin, async (req, res) => {
-    const { status, page = 1, limit = 10 } = req.query;
-
-    const filter = { isBooked: true };
-    if (status) filter.status = status;
-
-    try {
+router.get(
+    '/bookings',
+    auth,
+    isAdmin,
+    adminBookingFiltersValidation(),
+    validate,
+    async (req, res) => {
+        const { status, page = 1, limit = 10, from, to } = req.query;
         const skip = (page - 1) * limit;
 
-        const [bookings, total] = await Promise.all([
-            Slot.find(filter)
-                .populate('bookedBy', 'name email')
-                .sort({ date: -1 })
-                .skip(Number(skip))
-                .limit(Number(limit)),
+        const filter = { isBooked: true };
 
-            Slot.countDocuments(filter)
-        ]);
+        if (status) filter.status = status;
+        if (from || to) {
+            filter.date = {};
+            if (from) filter.date.$gte = new Date(from);
+            if (to) filter.date.$lte = new Date(to);
+        }
 
-        res.json({
-            page: Number(page),
-            limit: Number(limit),
-            totalBookings: total,
-            totalPages: Math.ceil(total / limit),
-            bookings
-        });
-    } catch (err) {
-        res.status(500).json({ msg: 'Server error' });
+        try {
+            const [bookings, total] = await Promise.all([
+                Slot.find(filter)
+                    .populate('bookedBy', 'name email')
+                    .sort({ date: -1 })
+                    .skip(Number(skip))
+                    .limit(Number(limit)),
+
+                Slot.countDocuments(filter)
+            ]);
+
+            res.json({
+                page: Number(page),
+                limit: Number(limit),
+                totalBookings: total,
+                totalPages: Math.ceil(total / limit),
+                bookings
+            });
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ msg: 'Server error' });
+        }
     }
-});
+);
+
 
 
 // GET /api/admin/summary - stats overview
