@@ -2,6 +2,8 @@ import express from 'express';
 import { connect } from 'mongoose';
 import { config } from 'dotenv';
 
+import { cancelOldUnbookedSlots } from './cron/cancelOldSlots.js';
+
 import authRoutes from './routes/auth.js'
 import adminRoutes from './routes/admin.js';
 import slotRoutes from './routes/slot.js';
@@ -12,6 +14,8 @@ config();
 
 // Middleware to parse JSON
 app.use(express.json());
+
+// cancelOldUnbookedSlots();
 
 // routes
 app.use('/api/auth', authRoutes);
