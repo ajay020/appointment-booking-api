@@ -58,14 +58,34 @@ router.patch('/:id', auth, async (req, res) => {
 
 
 // GET /api/bookings/my - View logged-in user's bookings
+// GET /api/bookings/my
 router.get('/my', auth, async (req, res) => {
+    const { page = 1, limit = 10 } = req.query;
+
     try {
-        const slots = await Slot.find({ bookedBy: req.user.userId }).sort({ date: 1 });
-        res.json(slots);
+        const skip = (page - 1) * limit;
+
+        const [bookings, total] = await Promise.all([
+            Slot.find({ bookedBy: req.user.userId })
+                .sort({ date: -1 })
+                .skip(Number(skip))
+                .limit(Number(limit)),
+
+            Slot.countDocuments({ bookedBy: req.user.userId })
+        ]);
+
+        res.json({
+            page: Number(page),
+            limit: Number(limit),
+            totalBookings: total,
+            totalPages: Math.ceil(total / limit),
+            bookings
+        });
     } catch (err) {
         res.status(500).json({ msg: 'Server error' });
     }
 });
+
 
 
 export default router;

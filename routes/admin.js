@@ -27,22 +27,36 @@ router.post("/promote/:id", auth, async (req, res) => {
 
 // GET /api/admin/bookings - all bookings (optional status filter)
 router.get('/bookings', auth, isAdmin, async (req, res) => {
-    const { status } = req.query;
+    const { status, page = 1, limit = 10 } = req.query;
+
+    const filter = { isBooked: true };
+    if (status) filter.status = status;
 
     try {
-        const query = {
-            isBooked: true
-        };
+        const skip = (page - 1) * limit;
 
-        if (status) query.status = status;
+        const [bookings, total] = await Promise.all([
+            Slot.find(filter)
+                .populate('bookedBy', 'name email')
+                .sort({ date: -1 })
+                .skip(Number(skip))
+                .limit(Number(limit)),
 
-        const bookings = await Slot.find(query).populate('bookedBy', 'name email');
+            Slot.countDocuments(filter)
+        ]);
 
-        res.json(bookings);
+        res.json({
+            page: Number(page),
+            limit: Number(limit),
+            totalBookings: total,
+            totalPages: Math.ceil(total / limit),
+            bookings
+        });
     } catch (err) {
         res.status(500).json({ msg: 'Server error' });
     }
 });
+
 
 // GET /api/admin/summary - stats overview
 router.get('/summary', auth, isAdmin, async (req, res) => {

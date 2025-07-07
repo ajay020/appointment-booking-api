@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import Slot from '../models/Slot.js';
-import auth  from '../middlewares/authMiddleware.js';
-import isAdmin  from '../middlewares/roleMiddleware.js';
+import auth from '../middlewares/authMiddleware.js';
+import isAdmin from '../middlewares/roleMiddleware.js';
 
 const router = Router();
 
@@ -18,15 +18,34 @@ router.post('/', auth, isAdmin, async (req, res) => {
     }
 });
 
-// GET /api/slots - Get all slots
+// GET /api/slots - Get all slots with pagination
 router.get('/', auth, async (req, res) => {
+    const { page = 1, limit = 10 } = req.query;
+
     try {
-        const slots = await Slot.find().sort({ date: 1, time: 1 });
-        res.json(slots);
+        const skip = (page - 1) * limit;
+
+        const [slots, total] = await Promise.all([
+            Slot.find()
+                .sort({ date: 1 })
+                .skip(Number(skip))
+                .limit(Number(limit)),
+
+            Slot.countDocuments()
+        ]);
+
+        res.json({
+            page: Number(page),
+            limit: Number(limit),
+            totalSlots: total,
+            totalPages: Math.ceil(total / limit),
+            slots
+        });
     } catch (err) {
         res.status(500).json({ msg: 'Server error' });
     }
 });
+
 
 // PUT /api/slots/:id - Update slot status (admin only)
 router.put('/:id', auth, isAdmin, async (req, res) => {
