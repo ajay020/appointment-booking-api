@@ -3,7 +3,7 @@ import Slot from '../models/Slot.js';
 
 // Run every hour → you can change this to daily, etc.
 export const cancelOldUnbookedSlots = () => {
-    cron.schedule('* * * * *', async () => {
+    cron.schedule('0 0 * * *', async () => {
         try {
             const now = new Date();
 

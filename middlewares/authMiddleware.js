@@ -1,16 +1,19 @@
 import jwt from 'jsonwebtoken';
+import AuthError from '../utils/AuthError.js';
 
 function authMiddleware(req, res, next) {
   const token = req.header('Authorization')?.split(' ')[1];
 
-  if (!token) return res.status(401).json({ msg: 'No token. Authorization denied.' });
+  if (!token) {
+    throw new AuthError('No token provided');
+  }
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = decoded; // { userId, role }
     next();
   } catch (err) {
-    res.status(401).json({ msg: 'Invalid token' });
+    throw new AuthError('Invalid or expired token');
   }
 }
 
