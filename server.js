@@ -1,5 +1,17 @@
+// Global safety net
+process.on('uncaughtException', (err) => {
+    console.error('🔥 Uncaught Exception:', err);
+    process.exit(1);
+});
+
+process.on('unhandledRejection', (err) => {
+    console.error('🔥 Unhandled Rejection:', err);
+    process.exit(1);
+});
+
+
+
 import express from 'express';
-import { connect } from 'mongoose';
 import { config } from 'dotenv';
 
 import { cancelOldUnbookedSlots } from './cron/cancelOldSlots.js';
@@ -9,6 +21,7 @@ import adminRoutes from './routes/admin.js';
 import slotRoutes from './routes/slot.js';
 import bookingRoutes from './routes/bookings.js';
 import { errorHandler } from './middlewares/errorHandler.js';
+import { connectDB } from './controllers/db.js';
 
 const app = express();
 config();
@@ -35,14 +48,14 @@ app.get('/', (req, res) => {
 // Error handling middleware
 app.use(errorHandler);
 
-// Connect to MongoDB
-connect(process.env.MONGO_URI)
-    .then(() => {
-        console.log('✅ Connected to MongoDB');
-        app.listen(process.env.PORT, () => {
-            console.log(`🚀 Server running at http://localhost:${process.env.PORT}`);
-        });
-    })
-    .catch((err) => {
-        console.error('❌ MongoDB connection error:', err);
+// Start server
+const start = async () => {
+    await connectDB(process.env.MONGO_URI);
+
+    const PORT = process.env.PORT || 5000;
+    app.listen(PORT, () => {
+        console.log(`🚀 Server running at http://localhost:${PORT}`);
     });
+};
+
+start();
