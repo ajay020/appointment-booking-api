@@ -21,7 +21,7 @@ import adminRoutes from './routes/admin.js';
 import slotRoutes from './routes/slot.js';
 import bookingRoutes from './routes/bookings.js';
 import { errorHandler } from './middlewares/errorHandler.js';
-import { connectDB } from './controllers/db.js';
+import { connectDB } from './config/db.js';
 
 const app = express();
 config();
