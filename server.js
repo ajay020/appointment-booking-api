@@ -1,16 +1,15 @@
-// Global safety net
+//  Global error listeners
 process.on('uncaughtException', (err) => {
-    console.error('🔥 Uncaught Exception:', err);
+    console.error('Uncaught Exception:', err);
     process.exit(1);
 });
 
 process.on('unhandledRejection', (err) => {
-    console.error('🔥 Unhandled Rejection:', err);
+    console.error('Unhandled Rejection:', err);
     process.exit(1);
 });
 
-
-
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 import express from 'express';
 import { config } from 'dotenv';
 
@@ -38,7 +37,6 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/slots', slotRoutes);
 app.use('/api/bookings', bookingRoutes);
 
-
 // Simple route
 app.get('/', (req, res) => {
     res.send('Appointment Booking API is running!');
@@ -54,7 +52,7 @@ const start = async () => {
 
     const PORT = process.env.PORT || 5000;
     app.listen(PORT, () => {
-        console.log(`🚀 Server running at http://localhost:${PORT}`);
+        console.log(`Server running at http://localhost:${PORT}`);
     });
 };
 

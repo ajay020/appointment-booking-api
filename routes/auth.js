@@ -32,7 +32,15 @@ router.post('/register', registerUserValidationRules(), validate, asyncHandler(a
     { expiresIn: '1d' }
   );
 
-  res.status(201).json({ token });
+  res.status(201).json({
+    token,
+    user: {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+    },
+  });
 }));
 
 
@@ -52,7 +60,15 @@ router.post('/login', loginUserValidationRules(), validate, asyncHandler(async (
     { expiresIn: '1d' }
   );
 
-  res.json({ token });
+  res.json({
+    token,
+    user: {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+    },
+  });
 }));
 
 
