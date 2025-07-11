@@ -7,7 +7,7 @@ const slotSchema = new mongoose.Schema({
     },
     time: {
         type: String,
-        required: true // e.g., '10:00 AM'
+        required: true
     },
     isBooked: {
         type: Boolean,

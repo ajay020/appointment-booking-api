@@ -9,6 +9,8 @@ import {
 import validate from '../validators/validate.js';
 import AppError from '../utils/AppError.js';
 import asyncHandler from '../utils/handleAsync.js';
+import { generateAccessToken, generateRefreshToken } from '../utils/token.js';
+import auth from '../middlewares/authMiddleware.js';
 
 const router = Router();
 
@@ -26,14 +28,14 @@ router.post('/register', registerUserValidationRules(), validate, asyncHandler(a
   const user = new User({ name, email, password: hashedPassword });
   await user.save();
 
-  const token = jwt.sign(
-    { userId: user._id, role: user.role },
-    process.env.JWT_SECRET,
-    { expiresIn: '1d' }
-  );
+  const accessToken = generateAccessToken(user);
+  const refreshToken = generateRefreshToken(user);
+  user.refreshToken = refreshToken; // Store refresh token in user document
+  await user.save();
 
   res.status(201).json({
-    token,
+    accessToken,
+    refreshToken,
     user: {
       id: user._id,
       name: user.name,
@@ -54,14 +56,15 @@ router.post('/login', loginUserValidationRules(), validate, asyncHandler(async (
   const isMatch = await compare(password, user.password);
   if (!isMatch) throw new AppError('Invalid credentials', 400);
 
-  const token = jwt.sign(
-    { userId: user._id, role: user.role },
-    process.env.JWT_SECRET,
-    { expiresIn: '1d' }
-  );
+  const accessToken = generateAccessToken(user);
+  const refreshToken = generateRefreshToken(user);
+
+  user.refreshToken = refreshToken; // Store refresh token in user document
+  await user.save();
 
   res.json({
-    token,
+    accessToken,
+    refreshToken,
     user: {
       id: user._id,
       name: user.name,
@@ -69,6 +72,53 @@ router.post('/login', loginUserValidationRules(), validate, asyncHandler(async (
       role: user.role,
     },
   });
+}));
+
+// POST /api/auth/refresh-token
+// This endpoint allows users to refresh their access token using a refresh token
+router.post('/refresh-token', asyncHandler(async (req, res) => {
+  const { refreshToken } = req.body;
+  if (!refreshToken) throw new AppError('No refresh token provided', 400);
+
+  // verify the refresh token
+  let payload;
+  try {
+    payload = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
+  } catch (err) {
+    throw new AppError('Invalid or expired refresh token', 401);
+  }
+
+  const user = await User.findById(payload.userId);
+  if (!user || user.refreshToken !== refreshToken) {
+    throw new AppError('Unauthorized', 403);
+  }
+
+  // Create new tokens
+  const newAccessToken = generateAccessToken(user);
+
+  const newRefreshToken = generateRefreshToken(user);
+
+  // Update stored refresh token
+  user.refreshToken = newRefreshToken;
+  await user.save();
+
+  res.json({
+    accessToken: newAccessToken,
+    refreshToken: newRefreshToken,
+    user: {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role
+    }
+  });
+}));
+
+router.post('/logout', auth, asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user.userId);
+  user.refreshToken = null;
+  await user.save();
+  res.json({ msg: 'Logged out' });
 }));
 
 

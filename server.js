@@ -12,6 +12,7 @@ process.on('unhandledRejection', (err) => {
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 import express from 'express';
 import { config } from 'dotenv';
+import morgan from 'morgan';
 
 import { cancelOldUnbookedSlots } from './cron/cancelOldSlots.js';
 
@@ -27,6 +28,10 @@ config();
 
 // Middleware to parse JSON
 app.use(express.json());
+
+// Enable logging for every incoming request
+morgan.token('body', (req) => JSON.stringify(req.body));
+app.use(morgan(':method :url :status :response-time ms - :body'));
 
 // cancel old unbooked slots every 24 hours
 // cancelOldUnbookedSlots();

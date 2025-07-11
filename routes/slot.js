@@ -24,12 +24,28 @@ router.post('/', auth, isAdmin, createSlotValidationRules(), validate, asyncHand
 
 // GET /api/slots - Get all slots with pagination
 router.get('/', auth, asyncHandler(async (req, res) => {
-    const { page = 1, limit = 10 } = req.query;
+    const { page = 1, limit = 10, date } = req.query;
 
     const skip = (page - 1) * limit;
 
+    const filter = {};
+
+    // If date is provided, filter by it
+    if (date) {
+        const selectedDate = new Date(date);
+        selectedDate.setHours(0, 0, 0, 0);
+
+        const nextDay = new Date(selectedDate);
+        nextDay.setDate(nextDay.getDate() + 1);
+
+        filter.date = {
+            $gte: selectedDate,
+            $lt: nextDay
+        };
+    }
+
     const [slots, total] = await Promise.all([
-        Slot.find()
+        Slot.find(filter)
             .sort({ date: 1 })
             .skip(Number(skip))
             .limit(Number(limit)),
@@ -62,7 +78,6 @@ router.put('/:id', auth, isAdmin, asyncHandler(async (req, res) => {
     await slot.save();
 
     res.json(slot);
-
 }));
 
 // DELETE /api/slots/:id - Delete a slot (admin only)
