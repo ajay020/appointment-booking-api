@@ -121,5 +121,69 @@ router.post('/logout', auth, asyncHandler(async (req, res) => {
   res.json({ msg: 'Logged out' });
 }));
 
+// GET /api/auth/profile - Get user profile
+router.get('/profile', auth, asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user.userId).select('-password -refreshToken');
+  if (!user) throw new AppError('User not found', 404);
+  
+  res.json(user);
+}));
+
+// PUT /api/auth/profile - Update user profile
+router.put('/profile', auth, asyncHandler(async (req, res) => {
+  const { name, email } = req.body;
+  
+  // Check if email is being changed and if it's already in use
+  if (email) {
+    const existingUser = await User.findOne({ 
+      email, 
+      _id: { $ne: req.user.userId } 
+    });
+    if (existingUser) {
+      throw new AppError('Email already in use', 400);
+    }
+  }
+  
+  const user = await User.findByIdAndUpdate(
+    req.user.userId,
+    { 
+      ...(name && { name }),
+      ...(email && { email })
+    },
+    { new: true, runValidators: true }
+  ).select('-password -refreshToken');
+  
+  if (!user) throw new AppError('User not found', 404);
+  
+  res.json({
+    msg: 'Profile updated successfully',
+    user
+  });
+}));
+
+// PUT /api/auth/change-password - Change user password
+router.put('/change-password', auth, asyncHandler(async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+  
+  if (!currentPassword || !newPassword) {
+    throw new AppError('Current password and new password are required', 400);
+  }
+  
+  if (newPassword.length < 6) {
+    throw new AppError('New password must be at least 6 characters long', 400);
+  }
+  
+  const user = await User.findById(req.user.userId);
+  if (!user) throw new AppError('User not found', 404);
+  
+  const isMatch = await compare(currentPassword, user.password);
+  if (!isMatch) throw new AppError('Current password is incorrect', 400);
+  
+  user.password = await hash(newPassword, 10);
+  await user.save();
+  
+  res.json({ msg: 'Password changed successfully' });
+}));
+
 
 export default router;

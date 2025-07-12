@@ -15,6 +15,8 @@ import { config } from 'dotenv';
 import morgan from 'morgan';
 
 import { cancelOldUnbookedSlots } from './cron/cancelOldSlots.js';
+import { sendBookingReminders } from './cron/bookingReminders.js';
+import { generalLimiter, authLimiter, bookingLimiter, adminLimiter } from './middlewares/rateLimiter.js';
 
 import authRoutes from './routes/auth.js'
 import adminRoutes from './routes/admin.js';
@@ -29,6 +31,9 @@ config();
 // Middleware to parse JSON
 app.use(express.json());
 
+// Apply general rate limiting to all routes
+app.use(generalLimiter);
+
 // Enable logging for every incoming request
 morgan.token('body', (req) => JSON.stringify(req.body));
 app.use(morgan(':method :url :status :response-time ms - :body'));
@@ -36,11 +41,14 @@ app.use(morgan(':method :url :status :response-time ms - :body'));
 // cancel old unbooked slots every 24 hours
 // cancelOldUnbookedSlots();
 
+// Send booking reminders daily at 9:00 AM
+// sendBookingReminders();
+
 // routes
-app.use('/api/auth', authRoutes);
-app.use('/api/admin', adminRoutes);
+app.use('/api/auth', authLimiter, authRoutes);
+app.use('/api/admin', adminLimiter, adminRoutes);
 app.use('/api/slots', slotRoutes);
-app.use('/api/bookings', bookingRoutes);
+app.use('/api/bookings', bookingLimiter, bookingRoutes);
 
 // Simple route
 app.get('/', (req, res) => {

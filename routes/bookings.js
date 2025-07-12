@@ -1,11 +1,13 @@
 import { Router } from 'express';
 import Slot from '../models/Slot.js';
+import User from '../models/User.js';
 import auth from '../middlewares/authMiddleware.js';
 import { bookingIdValidationRules } from '../validators/bookingValidators.js';
 import validate from '../validators/validate.js';
 import asyncHandler from '../utils/handleAsync.js';
 import AppError from '../utils/AppError.js';
 import ForbiddenError from '../utils/ForbiddenError.js';
+import { sendBookingConfirmation, sendBookingCancellation } from '../utils/emailService.js';
 
 const router = Router();
 
@@ -24,10 +26,20 @@ router.post('/:id', auth, bookingIdValidationRules(), validate, asyncHandler(asy
         throw new AppError('Slot already booked or unavailable', 400);
     }
 
+    const user = await User.findById(req.user.userId);
+    if (!user) throw new AppError('User not found', 404);
+
     slot.isBooked = true;
     slot.bookedBy = req.user.userId;
     slot.status = 'booked';
     await slot.save();
+
+    // Send booking confirmation email
+    try {
+        await sendBookingConfirmation(user.email, user.name, slot);
+    } catch (error) {
+        console.error('Failed to send booking confirmation email:', error);
+    }
 
     res.json({ msg: 'Slot booked successfully', slot });
 }));
@@ -41,13 +53,23 @@ router.patch('/:id', auth, bookingIdValidationRules(), validate, asyncHandler(as
         throw new ForbiddenError('You are not authorized to cancel this booking');
     }
 
+    const user = await User.findById(req.user.userId);
+    if (!user) throw new AppError('User not found', 404);
+
     slot.isBooked = false;
     slot.bookedBy = null;
     slot.status = 'available';
 
     await slot.save();
-    res.json({ msg: 'Booking cancelled', slot });
 
+    // Send booking cancellation email
+    try {
+        await sendBookingCancellation(user.email, user.name, slot);
+    } catch (error) {
+        console.error('Failed to send booking cancellation email:', error);
+    }
+
+    res.json({ msg: 'Booking cancelled', slot });
 }));
 
 
