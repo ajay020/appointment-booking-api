@@ -20,6 +20,8 @@ import authRoutes from './routes/auth.js'
 import adminRoutes from './routes/admin.js';
 import slotRoutes from './routes/slot.js';
 import bookingRoutes from './routes/bookings.js';
+import usersRoutes from './routes/users.js';
+
 import { errorHandler } from './middlewares/errorHandler.js';
 import { connectDB } from './config/db.js';
 
@@ -41,6 +43,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/slots', slotRoutes);
 app.use('/api/bookings', bookingRoutes);
+app.use('/api/users', usersRoutes);
 
 // Simple route
 app.get('/', (req, res) => {
