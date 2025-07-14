@@ -50,7 +50,6 @@ router.patch('/:id', auth, bookingIdValidationRules(), validate, asyncHandler(as
 
 }));
 
-
 // GET /api/bookings/my - View logged-in user's bookings
 router.get('/my', auth, asyncHandler(async (req, res) => {
     const { page = 1, limit = 10 } = req.query;

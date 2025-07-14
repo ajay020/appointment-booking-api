@@ -1,28 +1,36 @@
 import mongoose from 'mongoose';
 
-const slotSchema = new mongoose.Schema({
-    date: {
-        type: Date,
-        required: true
+const slotSchema = new mongoose.Schema(
+    {
+        date: {
+            type: Date,
+            required: true,
+        },
+        time: {
+            type: String,
+            required: true,
+        },
+        doctor: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Doctor',
+            required: true,
+        },
+        isBooked: {
+            type: Boolean,
+            default: false,
+        },
+        bookedBy: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
+            default: null,
+        },
+        status: {
+            type: String,
+            enum: ['available', 'booked', 'cancelled', 'completed'],
+            default: 'available',
+        },
     },
-    time: {
-        type: String,
-        required: true
-    },
-    isBooked: {
-        type: Boolean,
-        default: false
-    },
-    bookedBy: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        default: null
-    },
-    status: {
-        type: String,
-        enum: ['available', 'booked', 'cancelled', 'completed'],
-        default: 'available'
-    }
-}, { timestamps: true });
+    { timestamps: true }
+);
 
 export default mongoose.model('Slot', slotSchema);

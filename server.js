@@ -21,6 +21,7 @@ import adminRoutes from './routes/admin.js';
 import slotRoutes from './routes/slot.js';
 import bookingRoutes from './routes/bookings.js';
 import usersRoutes from './routes/users.js';
+import serviceRoutes from './routes/serviceRoute.js'
 
 import { errorHandler } from './middlewares/errorHandler.js';
 import { connectDB } from './config/db.js';
@@ -44,6 +45,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/slots', slotRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/users', usersRoutes);
+app.use('/api/services', serviceRoutes);
 
 // Simple route
 app.get('/', (req, res) => {
