@@ -1,5 +1,5 @@
 
-import mongoose, { Document, Schema, model, Types } from 'mongoose';
+import mongoose, { Document, Schema, Types } from 'mongoose';
 
 export interface ISlot extends Document {
     date: Date;
