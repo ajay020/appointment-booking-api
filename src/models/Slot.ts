@@ -1,6 +1,18 @@
-import mongoose from 'mongoose';
 
-const slotSchema = new mongoose.Schema(
+import mongoose, { Document, Schema, model, Types } from 'mongoose';
+
+export interface ISlot extends Document {
+    date: Date;
+    time: string;
+    isBooked: boolean;
+    status: 'available' | 'booked' | 'cancelled' | 'completed';
+    bookedBy: Types.ObjectId | null;
+    doctor: Types.ObjectId; // Reference to Doctor
+    createdAt: Date;
+    updatedAt: Date;
+}
+
+const slotSchema = new mongoose.Schema<ISlot>(
     {
         date: {
             type: Date,
@@ -33,4 +45,4 @@ const slotSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
-export default mongoose.model('Slot', slotSchema);
+export default mongoose.model<ISlot>('Slot', slotSchema);

@@ -1,6 +1,15 @@
-import mongoose from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 
-const serviceSchema = new mongoose.Schema(
+export interface IService extends Document {
+    _id: Types.ObjectId;
+    name: string;
+    description?: string;
+    image?: string;
+    createdAt: Date;
+    updatedAt: Date;
+}
+
+const serviceSchema = new mongoose.Schema<IService>(
     {
         name: {
             type: String,
@@ -17,4 +26,4 @@ const serviceSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
-export default mongoose.model('Service', serviceSchema);
+export default mongoose.model<IService>('Service', serviceSchema);

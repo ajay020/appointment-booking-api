@@ -1,8 +1,7 @@
-// seed/seedFakeData.ts
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
-import Service from '../models/Service.js';
-import Doctor from '../models/Doctor.js';
+import Service from '../models/Service';
+import Doctor from '../models/Doctor';
 
 dotenv.config(); // Load MONGO_URI
 
@@ -40,7 +39,7 @@ const seed = async () => {
         const doctors = await Doctor.insertMany([
             {
                 name: 'Dr. Meera Sharma',
-                specialization: 'Gynecologist',
+                specialty: 'Gynecologist',
                 experience: 10,
                 bio: 'Expert in prenatal and postnatal care.',
                 service: services[2]._id,
@@ -48,7 +47,7 @@ const seed = async () => {
             },
             {
                 name: 'Dr. Rohan Deshmukh',
-                specialization: 'Dentist',
+                specialty: 'Dentist',
                 experience: 6,
                 bio: 'Specialist in cosmetic dentistry.',
                 service: services[0]._id,
@@ -56,7 +55,7 @@ const seed = async () => {
             },
             {
                 name: 'Dr. Kavita Patel',
-                specialization: 'Ophthalmologist',
+                specialty: 'Ophthalmologist',
                 experience: 8,
                 bio: 'Experienced in cataract and glaucoma treatment.',
                 service: services[1]._id,
@@ -64,7 +63,7 @@ const seed = async () => {
             },
             {
                 name: 'Dr. Arjun Mehta',
-                specialization: 'Dentist',
+                specialty: 'Dentist',
                 experience: 5,
                 bio: 'Great with kids and nervous patients.',
                 service: services[0]._id,
@@ -72,7 +71,7 @@ const seed = async () => {
             },
             {
                 name: 'Dr. Neha Verma',
-                specialization: 'Eye Surgeon',
+                specialty: 'Eye Surgeon',
                 experience: 9,
                 bio: 'Performs advanced LASIK procedures.',
                 service: services[1]._id,
