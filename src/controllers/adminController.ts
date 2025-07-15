@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import User from '@/models/User';
-import Slot from '@/models/Slot';
+import Slot, { ISlot } from '@/models/Slot';
 import AppError from '@/utils/errors/AppError';
 
 
@@ -18,34 +18,55 @@ export const upgradeUserToAdmin = async (req: Request, res: Response) => {
 }
 
 export const getAllBookings = async (req: Request, res: Response) => {
-    const { status, page = 1, limit = 10, from, to } = req.query;
-    const skip = (page - 1) * limit;
+    const {
+        status,
+        from,
+        to,
+        page = '1',
+        limit = '10',
+    } = req.query as {
+        status?: ISlot['status'];
+        from?: string;
+        to?: string;
+        page?: string;
+        limit?: string;
+    };
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    const skip = (pageNum - 1) * limitNum;
 
-    const filter = { isBooked: true };
+    // Filter object
+    const filter: Record<string, any> = {
+        isBooked: true,
+    };
 
-    if (status) filter.status = status;
+    if (status) {
+        filter.status = status;
+    }
+
     if (from || to) {
         filter.date = {};
         if (from) filter.date.$gte = new Date(from);
         if (to) filter.date.$lte = new Date(to);
     }
 
+
     const [bookings, total] = await Promise.all([
         Slot.find(filter)
             .populate('bookedBy', 'name email')
             .sort({ date: -1 })
-            .skip(Number(skip))
-            .limit(Number(limit)),
+            .skip(skip)
+            .limit(limitNum),
 
-        Slot.countDocuments(filter)
+        Slot.countDocuments(filter),
     ]);
 
-    res.json({
-        page: Number(page),
-        limit: Number(limit),
+    res.status(200).json({
+        page: pageNum,
+        limit: limitNum,
         totalBookings: total,
-        totalPages: Math.ceil(total / limit),
-        bookings
+        totalPages: Math.ceil(total / limitNum),
+        bookings,
     });
 }
 
