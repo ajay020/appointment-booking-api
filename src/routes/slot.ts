@@ -14,7 +14,6 @@ router.post('/', auth, isAdmin, createSlotValidationRules(), validate, asyncHand
 // GET /api/slots - Get all slots with pagination
 router.get('/', auth, asyncHandler(getAllSlots));
 
-
 // PUT /api/slots/:id - Update slot status (admin only)
 router.put('/:id', auth, isAdmin, asyncHandler(updateSlotStatus));
 

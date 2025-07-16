@@ -35,8 +35,5 @@ export const getDoctorById = asyncHandler(async (req: Request, res: Response) =>
         date: { $gte: today },
     }).sort({ date: 1, time: 1 });
 
-    res.status(200).json({
-        doctor,
-        availableSlots: slots,
-    });
+    res.status(200).json({doctor, slots});
 });

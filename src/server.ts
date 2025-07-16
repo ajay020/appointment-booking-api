@@ -50,7 +50,7 @@ app.use('/api/services', serviceRoutes);
 app.use('/api/doctors', doctorRoutes);
 
 
-// Simple route
+// Test route
 app.get('/', (req, res) => {
     res.send('Appointment Booking API is running!');
 });

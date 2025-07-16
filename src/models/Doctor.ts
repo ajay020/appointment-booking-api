@@ -2,6 +2,7 @@
 import { Document, Schema, model, Types } from 'mongoose';
 
 export interface IDoctor extends Document {
+    _id: Types.ObjectId;
     name: string;
     specialty: string;
     experience: number;
